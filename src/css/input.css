@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@theme {
+    --color-orange: #FF9D00;
+    --color-jaune: #FFF3C4;
+    --color-rouge: #E2572E;
+}
+:root {
+    --gochi: 'Gochi Hand', cursive;
+    --quicksand: 'Quicksand', sans-serif;
+}
+
+.font-gochi {
+    font-family: var(--gochi);
+}
+.font-quicksand {
+    font-family: var(--quicksand);
+}
+
+
+/* Motif cahier lignes horizontales */
+.bg-cahier {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 18px,
+    #E2572E 19px,
+    transparent 20px
+  );
+}

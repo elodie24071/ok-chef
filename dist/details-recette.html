@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Quicksand:wght@300..700&display=swap"
+        rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <title>Détails de la recette</title>
+</head>
+
+<body>
+    <div id="loader" class="fixed inset-0 bg-orange flex flex-col justify-center items-center z-100">
+        <div class="absolute inset-0 bg-[url('../img/motifs.png')] bg-repeat opacity-50 pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col items-center">
+            <img src="img/logo_Ok-chef-menu.png" alt="logo Ok chef"
+                class="w-24 sm:w-32 md:w-40 lg:w-48 mb-4 animate-bounce">
+            <h1
+                class="font-gochi text-jaune bg-rouge mb-3 lg:mb-12 mt-2 text-base sm:2xl md:text-4xl lg:text-6xl inline-block px-3 py-1">
+                Chargement...</h1>
+        </div>
+    </div>
+
+    <header class="bg-orange p-1 sm:p-2 lg:p-3 flex justify-between items-center fixed top-0 left-0 right-0 z-50">
+        <div class="flex items-end gap-1 md:gap-2 lg:gap-3">
+            <a href="index.html"><img src="img/logo_Ok-chef-menu.png" alt=""
+                    class="logo max-w-12 sm:max-w-16 md:max-w-20 lg:max-w-22"></a>
+            <div class="flex flex-col text-jaune">
+                <h1 class="font-gochi text-sm sm:text-base md:text-xl lg:text-3xl">Ok chef</h1>
+                <h3 class="font-quicksand text-[0.625rem] sm:text-xs md:text-sm lg:text-base">Votre assistant vocal</h3>
+            </div>
+        </div>
+        <a href="nos-recettes.html"
+            class="text-jaune bg-rouge text-[0.625rem] sm:text-sm md:text-base lg:text-lg border-rouge border-2 px-1 lg:px-2 lg:py-1 rounded-full font-quicksand hover:bg-transparent hover:text-jaune hover:border-rouge">Découvrez
+            nos recettes</a>
+    </header>
+
+    <section class="relative bg-rouge px-4 py-16 pt-18 sm:pt-22 md:pt-26  lg:pt-30">
+        <div class="absolute inset-0 bg-[url('../img/moifs-jaune.png')] bg-repeat opacity-50 pointer-events-none"></div>
+        <div class="relative flex flex-col items-center lg:px-8" id="contenu-details">
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-orange p-4">
+        <div
+            class="font-quicksand flex flex-col sm:flex-row justify-center p-4 text-center gap-2 sm:gap-6 text-jaune text-xs">
+            <p>© 2025 Ok chef - Tous droits réservés</p>
+            <p>Mentions légales | Politique de confidentialité</p>
+        </div>
+    </footer>
+
+    <script src="https://kit.fontawesome.com/ce3c86f7cd.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
+    <script src="js/details.js"></script>
+</body>
+
+</html>

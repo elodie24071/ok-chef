@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Quicksand:wght@300..700&display=swap"
+        rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <title>Ok chef - Votre assistant vocal</title>
+</head>
+
+<body>
+    <div id="loader" class="fixed inset-0 bg-orange flex flex-col justify-center items-center z-100">
+        <div class="absolute inset-0 bg-[url('../img/motifs.png')] bg-repeat opacity-50 pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col items-center">
+            <img src="img/logo_Ok-chef-menu.png" alt="logo Ok chef"
+                class="w-24 sm:w-32 md:w-40 lg:w-48 mb-4 animate-bounce">
+            <h1
+                class="font-gochi text-jaune bg-rouge mb-3 lg:mb-12 mt-2 text-base sm:2xl md:text-4xl lg:text-6xl inline-block px-3 py-1">
+                Chargement...</h1>
+        </div>
+    </div>
+
+    <header class="bg-orange p-1 sm:p-2 lg:p-3 flex justify-between items-center fixed top-0 left-0 right-0 z-50">
+        <div class="flex items-end gap-1 md:gap-2 lg:gap-3">
+            <a href="index.html"><img src="img/logo_Ok-chef-menu.png" alt=""
+                    class="logo max-w-12 sm:max-w-16 md:max-w-20 lg:max-w-22"></a>
+            <div class="flex flex-col text-jaune">
+                <h1 class="font-gochi text-sm sm:text-base md:text-xl lg:text-3xl">Ok chef</h1>
+                <h3 class="font-quicksand text-[0.625rem] sm:text-xs md:text-sm lg:text-base">Votre assistant vocal</h3>
+            </div>
+        </div>
+        <a href="nos-recettes.html"
+            class="bg-rouge text-jaune text-[0.625rem] sm:text-sm md:text-base lg:text-lg border-rouge border-2 px-1 lg:px-2 lg:py-1 rounded-full font-quicksand hover:bg-transparent hover:text-jaune hover:border-rouge">Découvrez
+            nos recettes</a>
+    </header>
+
+    <!-- HERO -->
+    <section
+        class="relative bg-orange overflow-hidden min-h-[250px] lg:min-h-[800px] lg:flex lg:justify-center lg:items-center pt-12 sm:pt-18 md:pt-22 lg:pt-28">
+        <div class="absolute inset-0 bg-cahier"></div>
+        <div class="relative z-10 px-2 py-4 lg:py-8 font-gochi text-center">
+            <div class="mb-6 lg:mb-20">
+                <h1
+                    class="text-jaune bg-rouge mb-3 lg:mb-12 mt-2 text-base sm:2xl md:text-4xl lg:text-6xl inline-block px-3 py-1">
+                    Cuisinez les mains libres avec 'Ok
+                    chef'</h1>
+                <h2 class="text-jaune text-sm sm:lg md:text-xl lg:text-4xl">Écoutez les recettes pendant que vous
+                    cuisinez grâce au contrôle vocal
+                </h2>
+            </div>
+            <div class="text-rouge flex justify-center gap-3 lg:gap-12 text-xs sm:sm md:text-lg lg:text-2xl">
+                <a href="#fonction" class="bg-jaune px-2 pb-1 pt-2 rounded-full hover:bg-rouge hover:text-jaune">Comment
+                    ça
+                    fonctionne ?</a>
+                <a href="#recette" class="bg-jaune px-2 pb-1 pt-2 rounded-full hover:bg-rouge hover:text-jaune">Nos
+                    récentes
+                    recettes</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FONCTIONNEMENT -->
+    <section class="relative bg-jaune p-4 lg:min-h-[725px] pt-12 scroll-mt-8 md:scroll-mt-30" id="fonction">
+        <div class="absolute inset-0 bg-[url('../img/motifs.png')] bg-repeat opacity-50 pointer-events-none"></div>
+
+        <h1 class="font-gochi text-jaune bg-rouge px-2 py-1 inline-block text-base sm:xl md:text-2xl lg:text-3xl">
+            Comment ça fonctionne ?</h1>
+
+        <div
+            class="flex flex-col justify-center md:flex-row lg:items-start md:gap-4 lg:gap-16 lg:min-h-[400px] mt-4 lg:p-8">
+            <div class="flex my-4">
+                <h1 class="font-gochi text-2xl sm:3xl md:4-xl lg:text-5xl mr-2 text-rouge">1.</h1>
+                <div class="p-4 rounded-lg bg-rouge flex flex-col gap-4 font-quicksand text-jaune w-full">
+                    <h2 class="font-bold text-sm sm:base md:text-lg lg:text-2xl">Choisissez une recette</h2>
+                    <p class="text-xs sm:sm md:base lg:text-xl">Parcourez notre collection et trouvez le plat qui vous
+                        fait envie. Des entrées
+                        simples aux desserts gourmands, tout est là !</p>
+                </div>
+            </div>
+            <div class="flex my-4">
+                <h1 class="font-gochi text-2xl sm:3xl md:4xl lg:text-5xl mr-2 text-rouge">2.</h1>
+                <div class="p-4 rounded-lg bg-rouge flex flex-col gap-4 font-quicksand text-jaune w-full">
+                    <h2 class="font-bold text-sm sm:base md:text-lg lg:text-2xl">Dites “Ok chef”</h2>
+                    <p class="text-xs sm:sm md:base lg:text-xl">Activez l’assistant vocal pour qu’il vous guide pas à
+                        pas, sans avoir à toucher
+                        votre écran. Cuisinez en toute liberté !</p>
+                </div>
+            </div>
+            <div class="flex my-4 w-full">
+                <h1 class="font-gochi text-2xl sm:3xl md:4xl lg:text-5xl mr-2 text-rouge">3.</h1>
+                <div class="p-4 rounded-lg bg-rouge flex flex-col gap-4 font-quicksand text-jaune w-full">
+                    <h2 class="font-bold text-sm sm:base md:text-lg lg:text-2xl">Régalez-vous</h2>
+                    <p class="text-xs sm:sm md:base lg:text-xl">Suivez les étapes, écoutez les conseils du chef et
+                        savourez votre plat comme un
+                        pro… les mains propres !</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RECETTES À TESTER -->
+    <section class="relative bg-rouge p-4 pt-12 scroll-mt-30" id="recette">
+        <h1 class="font-gochi text-jaune bg-orange px-2 py-1 inline-block text-base sm:xl md:text-2xl lg:text-3xl">Nos
+            recettes à tester</h1>
+        <div class="grid grid-cols-1 sm:grid-cols-2 justify-center mt-6 gap-14 md:gap-10 lg:gap-20 px-3 py-10 md:p-10 lg:p-12 "
+            id="contenu" data-max-recettes="2"></div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-orange p-4">
+        <div
+            class="font-quicksand flex flex-col sm:flex-row justify-center p-4 text-center gap-2 sm:gap-6 text-jaune text-xs">
+            <p>© 2025 Ok chef - Tous droits réservés</p>
+            <p>Mentions légales | Politique de confidentialité</p>
+        </div>
+    </footer>
+
+    <script src="https://kit.fontawesome.com/ce3c86f7cd.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="js/recettes.js"></script>
+</body>
+
+</html>

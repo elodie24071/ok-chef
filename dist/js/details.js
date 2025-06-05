@@ -11,28 +11,14 @@ const synthVocale = window.speechSynthesis;
 let reconnaissanceVocale;
 let enEcoute = false;
 let okChefDetecte = false;
-let attenteOkChef = false; // attend "OK Chef" avant chaque commande
 // variables étapes
-let etapeActuelle = 0;
+let etapeActuelle = 0; // index de l'étape actuelle
 let etapes = [];
 // variables d'état
-let premierOkChef = true;
 let vientDeDireNon = false;
 let assistantActif = false;
-let etatAssistant = 'inactif'; // état de l'assistant vocal, pour savoir s'il est actif ou non
+let etatAssistant = 'inactif'; // état précis de l'assistant (inactif, attente_demarrage, lecture_etape, en_pause, termine)
 let aAnnonceCommande = false; // pour éviter de répéter la commande "OK Chef" après la première fois
-
-// timer d'inactivité
-let inactiviteTimer = null;
-const tempsInactif = 3000; // 3 secondes d'inactivité pour désactiver l'assistant vocal
-
-function resetInactiviteTimer() {
-    if (inactiviteTimer) clearTimeout(inactiviteTimer);
-    inactiviteTimer = setTimeout(()=> {
-        attenteOkChef = true; // repasse en veille
-    }, tempsInactif);
-}
-
 
 // mettre à jour l'état du bouton
 function majEtatBtn(microActif) {
@@ -62,38 +48,46 @@ function majEtatBtn(microActif) {
     }
 }
 
-// fonction pour parler
+// eviter que l'assistant s'écoute lui-même
 function parler(texte) {
     if (reconnaissanceVocale && enEcoute) {
-        reconnaissanceVocale.stop(); // arrêter la reconnaissance vocale avant de parler
-        enEcoute = false; // mettre à jour l'état
+        reconnaissanceVocale.stop();
+        enEcoute = false;
     }
+
     const utterance = new SpeechSynthesisUtterance(texte);
     utterance.lang = 'fr-FR';
+
+    // qd assistant finit de parler...
     utterance.onend = function () {
-        okChefDetecte = false; // réinitialiser la détection "OK Chef" après avoir parlé
-        if (reconnaissanceVocale && assistantActif && !enEcoute) {
+        okChefDetecte = false; // réinitialise la détection "OK Chef" après avoir parlé
+        if (reconnaissanceVocale && assistantActif && !enEcoute) { // redémarre la reconnaissance vocale si l'assistant est actif
             setTimeout(function () {
-                if (!enEcoute) {
-                    reconnaissanceVocale.start(); // redémarrer la reconnaissance vocale après avoir parlé
-                    enEcoute = true; // mettre à jour l'état  
+                if (!enEcoute && assistantActif) {
+                    try {
+                        reconnaissanceVocale.start();
+                        enEcoute = true;
+                    } catch (e) {
+                        console.error('Erreur lors du redémarrage:', e);
+                    }
                 }
-            }, 500); // attendre 0.5 seconde avant de redémarrer                    
+            }, 500); // redémarre après 500ms
         }
     };
+
     synthVocale.speak(utterance);
 }
 
 // initialiser la reconnaissance vocale
-function initReconnaissance() {
+function initReconnaissance() { // vérifier si le navigateur supporte la reconnaissance vocale
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         alert('Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.');
         return;
     }
 
-    reconnaissanceVocale = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); // créer l'objet de reconnaissance
+    reconnaissanceVocale = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); // créer l'objet de reconnaissance vocale
     reconnaissanceVocale.lang = 'fr-FR';
-    reconnaissanceVocale.interimResults = false; // ne pas afficher les résultats intermédiaires
+    reconnaissanceVocale.interimResults = false; // pas afficher les résultats intermédiaires
     reconnaissanceVocale.continuous = true; // continuer à écouter après chaque résultat
 
     // gestion des résultats
@@ -104,109 +98,102 @@ function initReconnaissance() {
             .toLowerCase();
         console.log('Transcription:', transcription);
 
-        // détecter "OK Chef"
-        if (transcription.includes('ok chef') && !okChefDetecte) {
+        // détecter "OK Chef" pour démarrer l'assistant
+        if (transcription.includes('ok chef')) {
             okChefDetecte = true;
-            vientDeDireNon = false; // réinitialiser le flag "non" après "OK Chef"
-            if (premierOkChef) {
-                premierOkChef = false; // ne pas répéter "OK Chef" après la première fois
-                etatAssistant = 'attente_demarrage'; // mettre l'assistant en état actif
-                parler("Bonjour, je suis votre assistant vocal. Êtes-vous prêt à cuisiner ?");
-            } else if (attenteOkChef) {
-                attenteOkChef = false;
-                // analyser phrase complète après "OK Chef"
-                if (transcription.includes('répéter') || transcription.includes('repeter') || transcription.includes('repète')) {
-                    lireEtapeActuelle(); // répéter l'étape actuelle
-                } else if (transcription.includes('suivante') || transcription.includes('suivant')) {
-                    if (etapeActuelle < etapes.length - 1) {
-                        etapeActuelle++; // passer à l'étape suivante
-                        lireEtapeActuelle(); // lire l'étape actuelle
-                    } else {
-                        parler("C'est la fin de la recette. Bon appétit !");
-                        etapeActuelle = 0; // réinitialiser l'étape pour la prochaine utilisation
-                        etatAssistant = 'termine'; // mettre l'assistant en état terminé
-                        setTimeout(function () {
-                            if (reconnaissanceVocale && enEcoute) {
-                                assistantActif = false; // désactiver l'assistant vocal
-                                reconnaissanceVocale.stop();
-                                enEcoute = false; // mettre à jour l'état
-                                okChefDetecte = false; // réinitialiser la détection "OK Chef"
-                                attenteOkChef = false; // réinitialiser l'attente "OK Chef"
-                                etatAssistant = 'inactif'; // mettre l'assistant en état inactif
-                                aAnnonceCommande = false; // réinitialiser l'annonce des commandes
-                                premierOkChef = true; // réinitialiser le premier "OK Chef"
-                                majEtatBtn(false); // mettre à jour l'état du bouton
-                                parler("Assistant vocal désactivé. Merci d'avoir utilisé l'assistant vocal.");
-                            }
-                        }, 5000); // attendre 5 secondes avant de désactiver l'assistant vocal
-                    }
-                } else {
-                    // verifier les demandes d'étape spécifique
-                    const etapeSpecifique = transcription.match(/(étape|etape) (\d+)/);
-                    if (etapeSpecifique) {
-                        const numEtape = parseInt(etapeSpecifique[2]) - 1; // convertir en index (étape 1 devient index 0)
-                        if (numEtape >= 0 && numEtape < etapes.length) {
-                            etapeActuelle = numEtape; // mettre à jour l'étape actuelle
-                            lireEtapeActuelle(); // lire l'étape actuelle
-                        } else {
-                            parler("Désolé, il n'y a pas d'étape " + numEtape + " dans cette recette.");
-                        }
-                    }
-                }
-            } else {
-                lireEtapeActuelle(); // lire la première étape
-            }
-            return; // ne pas traiter d'autres commandes après "OK Chef"
+            vientDeDireNon = false;
+            etatAssistant = 'attente_demarrage';
+            parler("Bonjour, je suis votre assistant vocal. Êtes-vous prêt à cuisiner ?");
+            return;
         }
 
-        // detecter uniquement la dernière commande (ce cas-ci "oui" ou "non")
-        const derniereCommande = transcription.match(/(oui|non)\b/);
-        if (derniereCommande && derniereCommande.length > 0) {
-            const derniere = derniereCommande[derniereCommande.length - 1];
+        // repeter l'étape actuelle
+        if (transcription.includes('répéter') || transcription.includes('repeter') || transcription.includes('repète')) {
+            lireEtapeActuelle();
+            return;
+        }
 
-            // détecter "oui" ou "non"
-            if (derniere === 'oui') {
-                if (attenteOkChef) return; // si on attend "OK Chef", ne pas traiter "oui"
-                vientDeDireNon = false; // réinitialiser le flag "non" après "oui"
-                if (etatAssistant === 'attente_demarrage') {
-                    etatAssistant = 'lecture_etape'; // mettre l'assistant en état actif
-                    parler("Très bien, commençons la recette !");
-                    setTimeout(() => {
-                        lireEtapeActuelle(); // lire la première étape
-                    }, 2000); // attendre 2 secondes avant de lire la première étape
-                } else {
-                    if (etapeActuelle < etapes.length - 1) {
-                        etapeActuelle++; // passer à l'étape suivante
-                        lireEtapeActuelle(); // lire l'étape actuelle
-                    } else {
-                        parler("C'est la fin de la recette. Bon appétit !");
-                        etapeActuelle = 0; // réinitialiser l'étape pour la prochaine utilisation
-                    }
-                    return;
-                }
-            } else if (derniere === 'non' && !vientDeDireNon) {
-                if (attenteOkChef) return; // si on attend "OK Chef", ne pas traiter "non"
-                console.log('Détection de "non" : dire le message d’attente');
-                vientDeDireNon = true;
-                if (etatAssistant === 'attente_demarrage') {
-                    etatAssistant = 'en_pause'; // mettre l'assistant en état de pause
-                }
-                parler("D'accord, je reste à votre disposition. Appelez-moi lorsque vous êtes prêt !");
-                return;
+         // détecter "commencer" pour démarrer après avoir dit "non"
+        if (transcription.includes('commencer') || transcription.includes('commence')) {
+            if (etatAssistant === 'en_pause') {
+                etatAssistant = 'lecture_etape';
+                parler("Très bien, commençons la recette !");
+                setTimeout(() => {
+                    lireEtapeActuelle();
+                }, 2000);
             }
-        };
-
-        reconnaissanceVocale.onerror = function (event) {
-            console.error('Erreur de reconnaissance vocale:', event.error);
-            if (event.error === 'no-speech' && assistantActif) {
+            return;
+        }
+        
+        // detecter "suivante" pour passer à l'étape suivante
+        if (transcription.includes('suivante') || transcription.includes('suivant')) {
+            if (etapeActuelle < etapes.length - 1) { // si pas à la dernière étape
+                etapeActuelle++; 
+                lireEtapeActuelle();
+            } else {
+                parler("C'est la fin de la recette. Bon appétit !");
+                etapeActuelle = 0;
+                etatAssistant = 'termine';
                 setTimeout(function () {
-                    if (reconnaissanceVocale) {
-                        reconnaissanceVocale.start(); // redémarrer la reconnaissance vocale après une erreur
-                        enEcoute = true; // mettre à jour l'état
+                    if (reconnaissanceVocale && enEcoute) {
+                        assistantActif = false;
+                        reconnaissanceVocale.stop();
+                        enEcoute = false;
+                        okChefDetecte = false;
+                        etatAssistant = 'inactif';
+                        aAnnonceCommande = false;
+                        majEtatBtn(false);
+                        parler("Assistant vocal désactivé. Merci d'avoir utilisé l'assistant vocal.");
                     }
-                }, 1000); // attendre 1 seconde avant de redémarrer
+                }, 5000);
             }
-        };
+            return;
+        }
+
+        // vérifier les demandes d'étape spécifique (généré avec l'aide de l'ia)
+        const etapeSpecifique = transcription.match(/(étape|etape) (\d+)/);
+        if (etapeSpecifique) {
+            const numEtape = parseInt(etapeSpecifique[2]) - 1; 
+            if (numEtape >= 0 && numEtape < etapes.length) { 
+                etapeActuelle = numEtape;
+                lireEtapeActuelle();
+            } else {
+                parler("Désolé, il n'y a pas d'étape " + (numEtape + 1) + " dans cette recette.");
+            }
+            return;
+        }
+
+        // detecter "oui" pour démarrer la recette
+        if (transcription.includes('oui') && etatAssistant === 'attente_demarrage') {
+            vientDeDireNon = false;
+            etatAssistant = 'lecture_etape';
+            parler("Très bien, commençons la recette !");
+            setTimeout(() => {
+                lireEtapeActuelle();
+            }, 2000);
+            return;
+        }
+
+        // detecter "non" pour mettre en pause
+        if (transcription.includes('non') && etatAssistant === 'attente_demarrage' && !vientDeDireNon) {
+            console.log('Détection de "non" : dire le message d\'attente');
+            vientDeDireNon = true;
+            etatAssistant = 'en_pause';
+            parler("D'accord, je reste à votre disposition. Dites 'commencer' lorsque vous êtes prêt !");
+            return;
+        }
+    };
+
+    reconnaissanceVocale.onerror = function (event) {
+        console.error('Erreur de reconnaissance vocale:', event.error);
+        if (event.error === 'no-speech' && assistantActif) {
+            setTimeout(function () {
+                if (reconnaissanceVocale) {
+                    reconnaissanceVocale.start(); // redémarrer la reconnaissance vocale après une erreur
+                    enEcoute = true; // mettre à jour l'état
+                }
+            }, 1000); // attendre 1 seconde avant de redémarrer
+        }
     };
 }
 
@@ -221,7 +208,7 @@ function lireEtapeActuelle() {
         aAnnonceCommande = true;
         setTimeout(function () {
             parler("Dites 'répéter' pour que je répète l'étape actuelle, ou 'suivante' pour passer à la prochaine étape.");
-        }, 10000); // attendre 5 secondes avant d'annoncer les commandes
+        }, 10000); // attendre 10 secondes avant d'annoncer les commandes
     }
 }
 
@@ -246,7 +233,6 @@ function attacherEvenements() {
             reconnaissanceVocale.stop();
             enEcoute = false;
             okChefDetecte = false; // réinitialiser la détection "OK Chef"
-            attenteOkChef = false; // réinitialiser l'attente "OK Chef"
             etatAssistant = 'inactif'; // mettre l'assistant en état inactif
             aAnnonceCommande = false; // réinitialiser l'annonce des commandes
             majEtatBtn(false);
@@ -318,7 +304,7 @@ $.ajax({
                     <p class="mb-4 text-sm md:base lg:text-lg">Appuyez sur le bouton "<span class="!text-[#FF9D00] font-bold">Activer l'assistant vocal</span>" pour commencer.
                     </p>
                     <div class="text-sm md:base lg:text-lg">
-                        <p class="mb-2">Pour naviguer dans la recette, dites "<span class="!text-orange font-bold">OK Chef</span>" suivi de :</p>
+                        <p class="mb-2">Pour naviguer dans la recette, dites :</p>
                         <ul class="list-disc pl-5 space-y-1">
                             <li>"<span class="text-orange font-bold">Répéter</span>" pour que l'assistant répète l'étape actuelle.</li>
                             <li>"<span class="text-orange font-bold">Suivante</span>" pour passer à la prochaine étape.</li>
@@ -327,7 +313,7 @@ $.ajax({
                     </div>
                 </div>
                 <div class="bg-orange font-quicksand rounded-lg p-4 mt-2 w-full sm:w-[40%] flex flex-col justify-center gap-4">
-                    <button id="activer-micro" class=" bg-jaune text-rouge hover:bg-transparent hover:text-jaune px-4 py-2 rounded-full text-sm lg:text-lg  border-2 border-rouge transition-all duration-300 ease-in-out"> Activer l'assistant vocal
+                    <button id="activer-micro" class=" bg-jaune text-rouge hover:bg-transparent hover:text-jaune px-4 py-2 rounded-full text-sm lg:text-lg  border-2 border-rouge transition-all duration-300 ease-in-out cursor-pointer"> Activer l'assistant vocal
                     </button>
                     <button id="arreter" disabled class=" bg-jaune text-rouge px-4 py-2 rounded-full text-sm lg:text-lg border-2 border-rouge opacity-50 cursor-not-allowed transition-all duration-300 ease-in-out">Désactiver l'assistant vocal
                     </button>

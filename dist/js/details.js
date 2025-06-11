@@ -206,9 +206,16 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
         }
 
         // vérifier les demandes d'étape spécifique (généré avec l'aide de l'ia)
-        const etapeSpecifique = transcription.match(/(étape|etape) (\d+)/);
+        const etapeSpecifique = transcription.match(/(étape|etape)\s*(\d+|un|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)/i);
         if (etapeSpecifique) {
-            const numEtape = parseInt(etapeSpecifique[2]) - 1;
+            // convertir les mots en nombres
+            const motsEtape = {
+                'un': 1, 'deux': 2, 'trois': 3, 'quatre': 4, 'cinq': 5,
+                'six': 6, 'sept': 7, 'huit': 8, 'neuf': 9, 'dix': 10
+            };
+
+            const numStr = etapeSpecifique[2].toLowerCase();
+            const numEtape = parseInt(motsEtape[numStr] || numStr) - 1; // -1 pour l'indexation à partir de 0
             if (numEtape >= 0 && numEtape < etapes.length) {
                 etapeActuelle = numEtape;
                 lireEtapeActuelle();

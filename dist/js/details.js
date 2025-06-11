@@ -19,8 +19,25 @@ let vientDeDireNon = false;
 let assistantActif = false;
 let etatAssistant = 'inactif'; // état précis de l'assistant (inactif, lecture_etape, termine)
 let aAnnonceCommande = false; // pour éviter de répéter la commande "OK Chef" après la première fois
-let timeoutAnnonce = null; // eviter que l'annonce se fasse meme si 
+let timeoutAnnonce = null; // eviter annonce après étape 1, si on donne une commande avant les 10 secondes
 
+// redemarrer l'écoute après avoir parlé
+function redemarrerEcoute() {
+    if (assistantActif && !enEcoute && reconnaissanceVocale && !synthVocale.speaking) {
+        setTimeout(() => {
+            // double chef pour eviter de redemarrer l'écoute si l'assistant est en train de parler
+            if (assistantActif && !enEcoute && !synthVocale.speaking && etatAssistant !== 'parle') {
+                try {
+                    reconnaissanceVocale.start();
+                    enEcoute = true;
+                    console.log('Ecoute redémarrée');
+                } catch (e) {
+                    console.error('Erreur lors du redémarrage de l\'écoute:', e);
+                }
+            }
+        }, 1000);
+    }
+}
 // mettre à jour l'état du bouton
 function majEtatBtn(microActif) {
     const btnActiver = $('#activer-micro');
@@ -78,19 +95,8 @@ function parler(texte) {
                 }
             }
         }
+        redemarrerEcoute(); // redémarre l'écoute après avoir parlé
 
-        if (reconnaissanceVocale && assistantActif && !enEcoute) { // redémarre la reconnaissance vocale si l'assistant est actif
-            setTimeout(function () {
-                if (!enEcoute && assistantActif) {
-                    try {
-                        reconnaissanceVocale.start();
-                        enEcoute = true;
-                    } catch (e) {
-                        console.error('Erreur lors du redémarrage:', e);
-                    }
-                }
-            }, 500); // redémarre après 500ms
-        }
     };
 
     synthVocale.speak(utterance);
@@ -106,7 +112,23 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
     reconnaissanceVocale = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); // créer l'objet de reconnaissance vocale
     reconnaissanceVocale.lang = 'fr-FR';
     reconnaissanceVocale.interimResults = false; // pas afficher les résultats intermédiaires
-    reconnaissanceVocale.continuous = true; // continuer à écouter après chaque résultat
+    reconnaissanceVocale.continuous = false;
+
+    // gérer l'arret automatique de la reconnaissance vocale
+    reconnaissanceVocale.onend = function () {
+        enEcoute = false; // mettre à jour l'état
+        console.log('Reconnaissance vocale arrêtée');
+        // redemarrer automatiquement si l'assistant est encore actif
+        if (assistantActif && etatAssistant !== 'parle') {
+            redemarrerEcoute();
+        }
+    }
+
+    // gérer demarrage de la reconnaissance vocale
+    reconnaissanceVocale.onstart = function () {
+        enEcoute = true; 
+        console.log('Reconnaissance vocale démarrée');
+    };
 
     // gestion des résultats
     reconnaissanceVocale.onresult = function (event) {
@@ -115,6 +137,7 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
             .join(' ')
             .toLowerCase();
         console.log('Transcription:', transcription);
+        enEcoute = false;
 
         // détecter "OK Chef" pour démarrer l'assistant
         if (transcription.includes('ok chef')) {
@@ -132,7 +155,7 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
 
         // repeter l'étape actuelle
         if (transcription.includes('répéter') || transcription.includes('repeter') || transcription.includes('repète')) {
-            nettoyerTimeouts(); // nettoyer les timeouts précédents
+            nettoyerTimeouts();
             lireEtapeActuelle();
             return;
         }
@@ -169,8 +192,13 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
                         etatAssistant = 'inactif';
                         aAnnonceCommande = false;
                         majEtatBtn(false);
-                        majEtatAssis('inactif');
-                        parler("Assistant vocal désactivé. Merci d'avoir utilisé l'assistant vocal.");
+                        // annoncer la désactivation de l'assistant
+                        const utteranceDesactiver = new SpeechSynthesisUtterance("Assistant vocal désactivé.");
+                        utteranceDesactiver.lang = 'fr-FR';
+                        utteranceDesactiver.onend = function () {
+                            majEtatAssis('inactif');
+                        };
+                        synthVocale.speak(utteranceDesactiver);
                     }
                 }, 5000);
             }
@@ -209,17 +237,20 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
             parler("D'accord, je reste à votre disposition. Dites 'commencer' lorsque vous êtes prêt !");
             return;
         }
+
+        // redemarrer l'écoute apres traitement si aucune commande n'est détectée
+        if (assistantActif) {
+            redemarrerEcoute();
+        }
     };
 
     reconnaissanceVocale.onerror = function (event) {
         console.error('Erreur de reconnaissance vocale:', event.error);
+        enEcoute = false;
         if (event.error === 'no-speech' && assistantActif) {
-            setTimeout(function () {
-                if (reconnaissanceVocale) {
-                    reconnaissanceVocale.start(); // redémarrer la reconnaissance vocale après une erreur
-                    enEcoute = true; // mettre à jour l'état
-                }
-            }, 1000); // attendre 1 seconde avant de redémarrer
+            redemarrerEcoute(); // redémarrer l'écoute si aucune parole n'est détectée
+        } else if (event.error === 'aborted' && assistantActif) {
+            redemarrerEcoute(); // redémarrer l'écoute si l'utilisateur a interrompu la reconnaissance
         }
     };
 }
@@ -326,9 +357,6 @@ $.ajax({
             return;
         }
 
-        // split: détecte les virgules dans la liste des ingrédients
-        // map: permet de créer un tableau pour chaque ingrédient
-        // trim: enlève les espaces autour des ingrédients
         var listeIngredients = post.ingredients.split(',').map(function (ingredient, i) {
             return `<div>
                 <input type="checkbox" id="ingredient-${i}" name="ingredient-${i}" class="appearance-none w-4 h-4 border-2 border-rouge bg-transparent rounded-sm checked:bg-rouge hover:bg-rouge transition-all duration-300 ease-in-out cursor-pointer"/>

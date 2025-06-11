@@ -18,29 +18,28 @@ function afficherRecettes(filtre) {
         // encodeURIComponent gère espaces et caractères spéciaux
         var urlRecette = encodeURIComponent(post.nom_recette);
         moncontenu +=
-            `<div class="relative w-full min-h-[350px] flex justify-center items-end bg-jaune rounded-lg lg:mt-10">
+            `<div class="relative w-full min-h-[400px] lg:min-h-[450px] bg-jaune rounded-lg lg:mt-10 max-w-[1200px] mx-auto pt-7 px-6">
                 <img src="img/spirales.svg" alt="spirales" class="absolute left-1 -top-5 lg:-top-8 w-full object-cover z-20">
-                <div class="relative z-10 flex flex-col h-full gap-2 md:gap-4 lg:gap-6 xl:gap-10 px-3 py-10 md:px-6 lg:px-8 sm:pt-15 md:pt-16 lg:pb-8 font-quicksand text-sm">
-                    <div class="flex flex-col justify-center items-center mt-6">
-                        <h1 class="font-gochi text-jaune bg-rouge px-2 py-1 inline-block text-center text-base sm:lg md:text-xl lg:text-4xl">${post.nom_recette}</h1>
-                        <p class="text-xs sm:sm md:text-base lg:text-lg text-rouge text-center pt-6">${post.description} !</p>
+                <div class=" flex flex-col justify-center sm:justify-between items-center gap-4 py-6 md:pt-8 lg:pt-16 h-full font-quicksand text-sm">
+                    <div class="w-full flex flex-col items-center gap-4">
+                        <h1 class="font-gochi text-jaune bg-rouge px-2 py-1 inline-block text-center text-base sm:text-lg md:text-xl lg:text-4xl">${post.nom_recette}</h1>
+                        <p class="text-xs sm:text-sm md:text-base lg:text-lg text-rouge text-center">${post.description} !</p>
+                        <div class="flex justify-center flex-wrap items-center text-xs sm:text-sm md:text-base lg:text-lg gap-2 lg:gap-4">
+                            <div class="flex items-center  border-2 border-rouge rounded-full px-2 py-1 text-rouge">
+                                <i class="fa-solid fa-stopwatch text-xs sm:text-sm md:text-base lg:text-lg mr-1 lg:mr-2"></i>${post.temps} min.
+                            </div>
+                            <div class="flex items-center border-2 border-rouge rounded-full px-2 py-1 text-rouge">
+                                <i class="fa-solid fa-user text-xs sm:text-sm md:text-base lg:text-lg mr-1 lg:mr-2"></i>${post.personne} pers.
+                            </div>
+                            <div class="flex items-center  border-2 border-rouge rounded-full px-2 py-1 text-rouge">
+                                <i class="fa-solid fa-signal text-xs sm:text-sm md:text-base lg:text-lg mr-1 lg:mr-2"></i> ${post.niveau}
+                            </div>
+                            <div class="flex items-center  border-2 border-rouge rounded-full px-2 py-1 text-rouge">
+                                <i class="fa-solid fa-utensils text-xs sm:text-sm md:text-base lg:text-lg mr-1 lg:mr-2"></i>${post.type}
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex justify-center flex-wrap items-center text-xs sm:sm md:text-base lg:text-lg gap-2 lg:gap-4 mb-4">
-                        <div class="flex items-center  border-2 border-rouge rounded-full px-2 py-1 text-rouge">
-                            <i class="fa-solid fa-stopwatch text-xs sm:sm md:text-base lg:text-lg mr-1 lg:mr-2"></i>${post.temps} min.
-                        </div>
-                        <div class="flex items-center border-2 border-rouge rounded-full px-2 py-1 text-rouge">
-                            <i class="fa-solid fa-user text-xs sm:sm md:text-base lg:text-lg mr-1 lg:mr-2"></i>${post.personne} pers.
-                        </div>
-                        <div class="flex items-center  border-2 border-rouge rounded-full px-2 py-1 text-rouge">
-                            <i class="fa-solid fa-signal text-xs sm:sm md:text-base lg:text-lg mr-1 lg:mr-2"></i> ${post.niveau}
-                        </div>
-                        <div class="flex items-center  border-2 border-rouge rounded-full px-2 py-1 text-rouge">
-                            <i class="fa-solid fa-utensils text-xs sm:sm md:text-base lg:text-lg mr-1 lg:mr-2"></i>${post.type}
-                        </div>
-                    </div>
-                    <a href="details-recette.html?nom_recette=${urlRecette}"
-                        class="text-sm md:text-base lg:text-lg inline-block bg-orange border-2 text-jaune px-2 py-1 rounded-full text-center hover:border-orange hover:bg-transparent hover:text-rouge">Voir la recette
+                    <a href="details-recette.html?nom_recette=${urlRecette}" class="w-full text-sm md:text-base lg:text-lg inline-block bg-orange border-2 text-jaune px-2 py-1 rounded-full text-center hover:border-orange hover:bg-transparent hover:text-rouge hover:font-bold transition-all duration-300 ease-in-out">Voir la recette
                     </a>
                 </div>
             </div>`;

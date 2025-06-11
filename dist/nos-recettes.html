@@ -12,7 +12,7 @@
     <title>Découvrez nos recettes</title>
 </head>
 
-<body>
+<body class="bg-orange">
     <div id="loader" class="fixed inset-0 bg-orange flex flex-col justify-center items-center z-100">
         <div class="absolute inset-0 bg-[url('../img/motifs.png')] bg-repeat opacity-50 pointer-events-none"></div>
         <div class="relative z-10 flex flex-col items-center">
@@ -25,17 +25,19 @@
     </div>
 
     <header class="bg-orange p-1 sm:p-2 lg:p-3 flex justify-between items-center fixed top-0 left-0 right-0 z-50">
-        <div class="flex items-end gap-1 md:gap-2 lg:gap-3">
-            <a href="index.html"><img src="img/logo_Ok-chef-menu.png" alt=""
-                    class="logo max-w-12 sm:max-w-16 md:max-w-20 lg:max-w-22"></a>
-            <div class="flex flex-col text-jaune">
+        <a href="index.html" class="flex items-end gap-1 md:gap-2 lg:gap-3">
+            <img src="img/logo_Ok-chef-menu.png" alt="Logo ok chef"
+                class="logo max-w-12 sm:max-w-16 md:max-w-20 lg:max-w-22">
+            <div class="flex flex-col text-jaune hover:text-rouge transition-all duration-300 ease-in-out">
                 <h1 class="font-gochi text-sm sm:text-base md:text-xl lg:text-3xl">Ok chef</h1>
-                <h3 class="font-quicksand text-[0.625rem] sm:text-xs md:text-sm lg:text-base">Votre assistant vocal</h3>
+                <h3 class="font-quicksand text-[0.625rem] sm:text-xs md:text-sm lg:text-base">Votre assistant vocal
+                </h3>
             </div>
-        </div>
+        </a>
         <a href="nos-recettes.html"
-            class="text-jaune text-[0.625rem] sm:text-sm md:text-base lg:text-lg border-rouge border-2 px-1 lg:px-2 lg:py-1 rounded-full font-quicksand hover:bg-transparent hover:text-rouge hover:border-rouge">Découvrez
-            nos recettes</a>
+            class="bg-rouge text-jaune text-[0.625rem] sm:text-sm md:text-base lg:text-lg border-rouge border-2 px-1 lg:px-2 lg:py-1 rounded-full font-quicksand hover:bg-transparent hover:text-jaune hover:border-rouge transition-all duration-300 ease-in-out">Découvrez
+            nos recettes
+        </a>
     </header>
 
     <section class="relative bg-rouge px-4 py-16 pt-18 sm:pt-22 md:pt-26  lg:pt-30">
@@ -47,20 +49,20 @@
             <!-- filtre -->
             <div class="flex justify-center mt-4 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
                 <button
-                    class="bg-orange text-jaune hover:bg-orange hover:text-jaune px-2 py-1 lg:px-4 lg:py-2 rounded-full font-quicksand mr-2 lg:mr-4 filtre-btn cursor-pointer"
+                    class="bg-orange text-jaune hover:bg-orange hover:text-jaune px-2 py-1 lg:px-4 lg:py-2 rounded-full font-quicksand mr-2 lg:mr-4 filtre-btn cursor-pointer transition-all duration-300 ease-in-out"
                     id="toutes" data-filtre="Toutes">Toutes</button>
                 <button
-                    class="cursor-pointer bg-jaune text-rouge hover:bg-orange hover:text-jaune px-2 py-1 lg:px-4 lg:py-2 rounded-full font-quicksand mr-2 lg:mr-4 filtre-btn"
+                    class="cursor-pointer bg-jaune text-rouge hover:bg-orange hover:text-jaune px-2 py-1 lg:px-4 lg:py-2 rounded-full font-quicksand mr-2 lg:mr-4 filtre-btn transition-all duration-300 ease-in-out"
                     id="entrees" data-filtre="entrée">Entrées</button>
                 <button
-                    class="cursor-pointer bg-jaune text-rouge hover:bg-orange hover:text-jaune px-2 py-1 lg:px-4 lg:py-2 rounded-full font-quicksand mr-2 lg:mr-4 filtre-btn"
+                    class="cursor-pointer bg-jaune text-rouge hover:bg-orange hover:text-jaune px-2 py-1 lg:px-4 lg:py-2 rounded-full font-quicksand mr-2 lg:mr-4 filtre-btn transition-all duration-300 ease-in-out"
                     id="plats" data-filtre="plat">Plats</button>
                 <button
-                    class="cursor-pointer bg-jaune text-rouge hover:bg-orange hover:text-jaune px-2 py-1 lg:px-4 lg:py-2 rounded-full font-quicksand filtre-btn"
+                    class="cursor-pointer bg-jaune text-rouge hover:bg-orange hover:text-jaune px-2 py-1 lg:px-4 lg:py-2 rounded-full font-quicksand filtre-btn transition-all duration-300 ease-in-out"
                     id="desserts" data-filtre="dessert">Desserts</button>
             </div>
             <!-- recettes -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 justify-center mt-10 gap-10 sm:gap-6 lg:p-2 lg:gap-6"
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 justify-center mt-10 gap-8 sm:gap-6 lg:p-2 lg:gap-6"
                 id="contenu"></div>
         </div>
     </section>

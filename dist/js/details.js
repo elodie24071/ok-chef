@@ -17,8 +17,9 @@ let etapes = [];
 // variables d'état
 let vientDeDireNon = false;
 let assistantActif = false;
-let etatAssistant = 'inactif'; // état précis de l'assistant (inactif, attente_demarrage, lecture_etape, en_pause, termine)
+let etatAssistant = 'inactif'; // état précis de l'assistant (inactif, lecture_etape, termine)
 let aAnnonceCommande = false; // pour éviter de répéter la commande "OK Chef" après la première fois
+let timeoutAnnonce = null; // eviter que l'annonce se fasse meme si 
 
 // mettre à jour l'état du bouton
 function majEtatBtn(microActif) {
@@ -27,29 +28,38 @@ function majEtatBtn(microActif) {
     if (microActif) {
         // Micro activé - désactiver le bouton "activer" et activer "désactiver"
         btnActiver.prop('disabled', true)
-            .removeClass('hover:bg-transparent hover:text-jaune')
+            .removeClass('hover:bg-transparent hover:text-jaune hover:border-rouge cursor-pointer')
             .addClass('opacity-50 cursor-not-allowed')
             .text('Micro activé');
 
         btnArreter.prop('disabled', false)
             .removeClass('opacity-50 cursor-not-allowed')
-            .addClass('hover:bg-transparent hover:text-jaune');
+            .addClass('hover:bg-transparent hover:text-jaune hover:border-rouge cursor-pointer');
     }
     else {
         // Micro désactivé - activer le bouton "activer" et désactiver "désactiver"
         btnActiver.prop('disabled', false)
             .removeClass('opacity-50 cursor-not-allowed')
-            .addClass('hover:bg-transparent hover:text-jaune')
+            .addClass('hover:bg-transparent hover:text-jaune hover:border-rouge cursor-pointer')
             .text('Activer l\'assistant vocal');
 
         btnArreter.prop('disabled', true)
-            .removeClass('hover:bg-transparent hover:text-jaune')
+            .removeClass('hover:bg-transparent hover:text-jaune hover:border-rouge cursor-pointer')
             .addClass('opacity-50 cursor-not-allowed');
+    }
+}
+
+function nettoyerTimeouts() {
+    if (timeoutAnnonce) {
+        clearTimeout(timeoutAnnonce);
+        timeoutAnnonce = null;
+        console.log('Timeout annonce nettoyé');
     }
 }
 
 // eviter que l'assistant s'écoute lui-même
 function parler(texte) {
+    majEtatAssis('parle');
     if (reconnaissanceVocale && enEcoute) {
         reconnaissanceVocale.stop();
         enEcoute = false;
@@ -61,6 +71,14 @@ function parler(texte) {
     // qd assistant finit de parler...
     utterance.onend = function () {
         okChefDetecte = false; // réinitialise la détection "OK Chef" après avoir parlé
+        if (assistantActif) {
+            if (etatAssistant !== 'attente_ok_chef') {
+                if (etatAssistant === 'en_pause' || etatAssistant === 'lecture_etape' && etapeActuelle < etapes.length) {
+                    majEtatAssis('ecoute');
+                }
+            }
+        }
+
         if (reconnaissanceVocale && assistantActif && !enEcoute) { // redémarre la reconnaissance vocale si l'assistant est actif
             setTimeout(function () {
                 if (!enEcoute && assistantActif) {
@@ -103,17 +121,23 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
             okChefDetecte = true;
             vientDeDireNon = false;
             etatAssistant = 'attente_demarrage';
+            setTimeout(() => { // change l'état après 3 secondes
+                if (etatAssistant === 'attente_demarrage') {
+                    majEtatAssis('ecoute');
+                }
+            }, 3000);
             parler("Bonjour, je suis votre assistant vocal. Êtes-vous prêt à cuisiner ?");
             return;
         }
 
         // repeter l'étape actuelle
         if (transcription.includes('répéter') || transcription.includes('repeter') || transcription.includes('repète')) {
+            nettoyerTimeouts(); // nettoyer les timeouts précédents
             lireEtapeActuelle();
             return;
         }
 
-         // détecter "commencer" pour démarrer après avoir dit "non"
+        // détecter "commencer" pour démarrer après avoir dit "non"
         if (transcription.includes('commencer') || transcription.includes('commence')) {
             if (etatAssistant === 'en_pause') {
                 etatAssistant = 'lecture_etape';
@@ -124,16 +148,18 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
             }
             return;
         }
-        
+
         // detecter "suivante" pour passer à l'étape suivante
         if (transcription.includes('suivante') || transcription.includes('suivant')) {
+            nettoyerTimeouts();
             if (etapeActuelle < etapes.length - 1) { // si pas à la dernière étape
-                etapeActuelle++; 
+                etapeActuelle++;
                 lireEtapeActuelle();
             } else {
                 parler("C'est la fin de la recette. Bon appétit !");
                 etapeActuelle = 0;
                 etatAssistant = 'termine';
+                majEtatAssis('termine');
                 setTimeout(function () {
                     if (reconnaissanceVocale && enEcoute) {
                         assistantActif = false;
@@ -143,6 +169,7 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
                         etatAssistant = 'inactif';
                         aAnnonceCommande = false;
                         majEtatBtn(false);
+                        majEtatAssis('inactif');
                         parler("Assistant vocal désactivé. Merci d'avoir utilisé l'assistant vocal.");
                     }
                 }, 5000);
@@ -153,8 +180,8 @@ function initReconnaissance() { // vérifier si le navigateur supporte la reconn
         // vérifier les demandes d'étape spécifique (généré avec l'aide de l'ia)
         const etapeSpecifique = transcription.match(/(étape|etape) (\d+)/);
         if (etapeSpecifique) {
-            const numEtape = parseInt(etapeSpecifique[2]) - 1; 
-            if (numEtape >= 0 && numEtape < etapes.length) { 
+            const numEtape = parseInt(etapeSpecifique[2]) - 1;
+            if (numEtape >= 0 && numEtape < etapes.length) {
                 etapeActuelle = numEtape;
                 lireEtapeActuelle();
             } else {
@@ -201,33 +228,70 @@ function lireEtapeActuelle() {
     if (etapes.length === 0) return;
     console.log('Lecture étape:', etapeActuelle + 1, etapes[etapeActuelle]); // Debug
     const texteEtape = `Étape ${etapeActuelle + 1} : ${etapes[etapeActuelle]}`;
+    etatAssistant = 'lecture_etape';
     parler(texteEtape);
 
     // annonce des commandes seulement après la première étape
     if (etapeActuelle === 0 && !aAnnonceCommande) {
         aAnnonceCommande = true;
-        setTimeout(function () {
+        nettoyerTimeouts();
+        timeoutAnnonce = setTimeout(function () {
             parler("Dites 'répéter' pour que je répète l'étape actuelle, ou 'suivante' pour passer à la prochaine étape.");
+            timeoutAnnonce = null; // réinitialiser le timeout
         }, 10000); // attendre 10 secondes avant d'annoncer les commandes
     }
 }
 
+// suivi état assistant
+function majEtatAssis(etat) {
+    const indicateur = document.getElementById('indicateur-assis');
+    const msg = document.getElementById('msg-assis');
 
+    switch (etat) {
+        case 'inactif':
+            indicateur.className = 'inline-block w-3 h-3 rounded-full bg-gray-400';
+            msg.textContent = 'Assistant inactif';
+            break;
+        case 'attente_ok_chef':
+            indicateur.className = 'inline-block w-3 h-3 rounded-full bg-yellow-400 animate-pulse';
+            msg.textContent = 'Dites "OK Chef" pour démarrer';
+            break;
+        case 'ecoute':
+            indicateur.className = 'inline-block w-3 h-3 border-1 border-green-700 rounded-full bg-green-400 animate-ping';
+            msg.textContent = 'Assistant en écoute';
+            break;
+        case 'parle':
+            indicateur.className = 'inline-block w-3 h-3 rounded-full bg-red-700';
+            msg.textContent = 'Assistant en train de parler';
+            break;
+        case 'termine':
+            indicateur.className = 'inline-block w-3 h-3 rounded-full bg-gray-400';
+            msg.textContent = 'Assistant terminé';
+            break;
+        default:
+            console.error('État inconnu:', etat);
+    }
+}
+
+// boutons (dés)activer l'assistant vocal
 function attacherEvenements() {
     // activer micro
     $('#activer-micro').on('click', function () {
         if (!reconnaissanceVocale) initReconnaissance();
         if (!enEcoute) {
             assistantActif = true;
+            etatAssistant = 'attente_ok_chef'; // mettre l'assistant en état d'attente de "OK Chef"
             reconnaissanceVocale.start();
             enEcoute = true;
             majEtatBtn(true);
             parler("Assistant vocal activé. Dites 'OK Chef' pour commencer.");
+            majEtatAssis('attente_ok_chef');
         }
     });
 
     // désactiver micro
     $('#arreter').on('click', function () {
+        nettoyerTimeouts();
         if (reconnaissanceVocale && enEcoute) {
             assistantActif = false;
             reconnaissanceVocale.stop();
@@ -238,6 +302,7 @@ function attacherEvenements() {
             majEtatBtn(false);
             parler("Assistant vocal désactivé.");
         }
+        majEtatAssis('inactif');
     });
 }
 
@@ -265,9 +330,9 @@ $.ajax({
         // map: permet de créer un tableau pour chaque ingrédient
         // trim: enlève les espaces autour des ingrédients
         var listeIngredients = post.ingredients.split(',').map(function (ingredient, i) {
-            return `<div class="">
-                <input type="checkbox" id="ingredient-${i}" name="ingredient-${i}" class="appearance-none w-4 h-4 border-2 border-rouge bg-transparent rounded-sm checked:bg-rouge hover:bg-rouge"/>
-                <label for="ingredient-${i}" class="ml-1">${ingredient.trim()}</label>
+            return `<div>
+                <input type="checkbox" id="ingredient-${i}" name="ingredient-${i}" class="appearance-none w-4 h-4 border-2 border-rouge bg-transparent rounded-sm checked:bg-rouge hover:bg-rouge transition-all duration-300 ease-in-out cursor-pointer"/>
+                <label for="ingredient-${i}" class="ml-1 cursor-pointer">${ingredient.trim()}</label>
             </div>`;
         }
         ).join('');
@@ -313,10 +378,12 @@ $.ajax({
                     </div>
                 </div>
                 <div class="bg-orange font-quicksand rounded-lg p-4 mt-2 w-full sm:w-[40%] flex flex-col justify-center gap-4">
-                    <button id="activer-micro" class=" bg-jaune text-rouge hover:bg-transparent hover:text-jaune px-4 py-2 rounded-full text-sm lg:text-lg  border-2 border-rouge transition-all duration-300 ease-in-out cursor-pointer"> Activer l'assistant vocal
+                    <button id="activer-micro" class=" bg-jaune text-rouge hover:bg-transparent hover:text-jaune px-4 py-2 rounded-full text-sm lg:text-lg border-2 border-transparent hover:border-rouge transition-all duration-300 ease-in-out cursor-pointer"> Activer l'assistant vocal
                     </button>
-                    <button id="arreter" disabled class=" bg-jaune text-rouge px-4 py-2 rounded-full text-sm lg:text-lg border-2 border-rouge opacity-50 cursor-not-allowed transition-all duration-300 ease-in-out">Désactiver l'assistant vocal
+                    <button id="arreter" disabled class=" bg-jaune text-rouge px-4 py-2 rounded-full text-sm lg:text-lg border-2 border-transparent opacity-50 cursor-not-allowed transition-all duration-300 ease-in-out">Désactiver l'assistant vocal
                     </button>
+                    <div id="status-assis" class="flex justify-center items-center gap-2 mt-2"><span id="indicateur-assis" class="inline-block w-3 h-3 rounded-full bg-gray-400 transition-colors"></span><span id="msg-assis" class="text-xs text-gray-600">Assistant innactif</span>
+                    </div>
                 </div>
             </div>
             
@@ -360,7 +427,7 @@ $.ajax({
             doc.text("Liste des ingrédients", 10, 10);
             doc.setFontSize(12);
             ingredients.forEach((ingredient, i) => {
-                doc.text("-"  + ingredient, 10, 20 + (i * 10));
+                doc.text("-" + ingredient, 10, 20 + (i * 10));
             });
             doc.save("ingredients.pdf");
         });
